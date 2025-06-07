@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'modules/employees/controllers/employee_controller.dart';
 import 'modules/employees/views/employee_list_screen.dart';
 import 'modules/purchases/controllers/purchase_controller.dart';
-import 'modules/parts/controllers/part_controller.dart'; // Added this line
+import 'modules/parts/controllers/part_controller.dart';
+import 'modules/orders/controllers/order_controller.dart'; // Added this line
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,10 +25,13 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => PurchaseController(),
         ),
-        ChangeNotifierProvider( // Added this provider for PartController
+        ChangeNotifierProvider(
           create: (_) => PartController(),
         ),
-        // TODO: Add other controllers here (InventoryController for full inventory view, Sales, Reports etc.)
+        ChangeNotifierProvider( // Added this provider for OrderController
+          create: (_) => OrderController(),
+        ),
+        // TODO: Add other controllers here (InventoryController for full inventory view, Reports etc.)
       ],
       child: MaterialApp(
         title: 'Workshop Management',

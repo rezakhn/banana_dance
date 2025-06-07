@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+// Purchase Module Views
 import 'package:workshop_management_app/modules/purchases/views/purchase_invoice_list_screen.dart';
 import 'package:workshop_management_app/modules/purchases/views/supplier_list_screen.dart';
-import 'package:workshop_management_app/modules/parts/views/part_list_screen.dart'; // Added this line
+// Parts Module Views
+import 'package:workshop_management_app/modules/parts/views/part_list_screen.dart';
+// Orders Module Views
+import 'package:workshop_management_app/modules/orders/views/customer_list_screen.dart'; // Added
+import 'package:workshop_management_app/modules/orders/views/sales_order_list_screen.dart'; // Added
+// Employee Module
 import '../controllers/employee_controller.dart';
 import 'employee_edit_screen.dart';
 import 'work_log_calendar_screen.dart';
@@ -22,8 +28,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<EmployeeController>(context, listen: false).fetchEmployees();
       // Pre-fetch other controllers' data if needed upon app start, or let their screens do it.
+      // Example:
       // Provider.of<PurchaseController>(context, listen: false).fetchSuppliers();
       // Provider.of<PartController>(context, listen: false).fetchParts();
+      // Provider.of<OrderController>(context, listen: false).fetchCustomers();
     });
   }
 
@@ -31,10 +39,31 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Workshop Manager'), // Updated title for home
+        title: const Text('Workshop Manager'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.storefront_outlined), // Changed icon
+          IconButton( // Orders: Customers
+            icon: const Icon(Icons.people_alt_outlined),
+            tooltip: 'Customers',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CustomerListScreen()),
+              );
+            },
+          ),
+          IconButton( // Orders: Sales Orders
+            icon: const Icon(Icons.shopping_cart_checkout_outlined),
+            tooltip: 'Sales Orders',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SalesOrderListScreen()),
+              );
+            },
+          ),
+          const VerticalDivider(width: 1, indent: 10, endIndent: 10), // Separator
+          IconButton( // Purchases: Suppliers
+            icon: const Icon(Icons.storefront_outlined),
             tooltip: 'Suppliers',
             onPressed: () {
               Navigator.push(
@@ -43,8 +72,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.receipt_long_outlined), // Changed icon
+          IconButton( // Purchases: Purchase Invoices
+            icon: const Icon(Icons.receipt_long_outlined),
             tooltip: 'Purchase Invoices',
             onPressed: () {
               Navigator.push(
@@ -53,7 +82,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               );
             },
           ),
-          IconButton(
+          const VerticalDivider(width: 1, indent: 10, endIndent: 10), // Separator
+          IconButton( // Parts & Assemblies
             icon: const Icon(Icons.build_circle_outlined),
             tooltip: 'Parts & Assemblies',
             onPressed: () {
@@ -63,9 +93,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               );
             },
           ),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.person_add_alt_1_outlined), // Changed "Add Employee" to a menu for now
-            tooltip: "Add Employee",
+           const VerticalDivider(width: 1, indent: 10, endIndent: 10), // Separator
+          PopupMenuButton<String>( // Employee Actions
+            icon: const Icon(Icons.person_outline),
+            tooltip: "Employee Actions",
             onSelected: (value) {
               if (value == 'add_employee') {
                  Navigator.push(
@@ -75,12 +106,17 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                     ),
                   );
               }
+              // Can add 'view_employees_list' if body changes from employee list
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               const PopupMenuItem<String>(
                 value: 'add_employee',
                 child: Text('Add Employee'),
               ),
+              // const PopupMenuItem<String>(
+              //   value: 'view_employees_list',
+              //   child: Text('View Employees'),
+              // ),
             ],
           ),
         ],
