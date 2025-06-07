@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:workshop_management_app/modules/purchases/views/purchase_invoice_list_screen.dart'; // Added
-import 'package:workshop_management_app/modules/purchases/views/supplier_list_screen.dart'; // Added
+import 'package:workshop_management_app/modules/purchases/views/purchase_invoice_list_screen.dart';
+import 'package:workshop_management_app/modules/purchases/views/supplier_list_screen.dart';
+import 'package:workshop_management_app/modules/parts/views/part_list_screen.dart'; // Added this line
 import '../controllers/employee_controller.dart';
-// import '../models/employee.dart'; // Not directly used here anymore after card
 import 'employee_edit_screen.dart';
 import 'work_log_calendar_screen.dart';
 import '../widgets/employee_card.dart';
-
 
 class EmployeeListScreen extends StatefulWidget {
   const EmployeeListScreen({Key? key}) : super(key: key);
@@ -22,6 +21,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<EmployeeController>(context, listen: false).fetchEmployees();
+      // Pre-fetch other controllers' data if needed upon app start, or let their screens do it.
+      // Provider.of<PurchaseController>(context, listen: false).fetchSuppliers();
+      // Provider.of<PartController>(context, listen: false).fetchParts();
     });
   }
 
@@ -29,14 +31,12 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Employees'),
+        title: const Text('Workshop Manager'), // Updated title for home
         actions: [
           IconButton(
-            icon: const Icon(Icons.store),
+            icon: const Icon(Icons.storefront_outlined), // Changed icon
             tooltip: 'Suppliers',
             onPressed: () {
-              // Ensure PurchaseController's suppliers are loaded before navigating if needed immediately by SupplierListScreen
-              // Provider.of<PurchaseController>(context, listen: false).fetchSuppliers();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SupplierListScreen()),
@@ -44,11 +44,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.receipt_long),
+            icon: const Icon(Icons.receipt_long_outlined), // Changed icon
             tooltip: 'Purchase Invoices',
             onPressed: () {
-              // Ensure PurchaseController's invoices are loaded
-              // Provider.of<PurchaseController>(context, listen: false).fetchPurchaseInvoices();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const PurchaseInvoiceListScreen()),
@@ -56,29 +54,47 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.add_circle_outline), // Changed icon for differentiation
-            tooltip: 'Add Employee',
+            icon: const Icon(Icons.build_circle_outlined),
+            tooltip: 'Parts & Assemblies',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const EmployeeEditScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const PartListScreen()),
               );
             },
           ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.person_add_alt_1_outlined), // Changed "Add Employee" to a menu for now
+            tooltip: "Add Employee",
+            onSelected: (value) {
+              if (value == 'add_employee') {
+                 Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EmployeeEditScreen(),
+                    ),
+                  );
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'add_employee',
+                child: Text('Add Employee'),
+              ),
+            ],
+          ),
         ],
       ),
-      body: Consumer<EmployeeController>(
+      body: Consumer<EmployeeController>( // Body remains Employee list for now
         builder: (context, controller, child) {
           if (controller.isLoading && controller.employees.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (controller.errorMessage != null && controller.employees.isEmpty) { // Check if empty before showing error
+          if (controller.errorMessage != null && controller.employees.isEmpty) {
             return Center(child: Text('Error: ${controller.errorMessage}'));
           }
           if (controller.employees.isEmpty) {
-            return const Center(child: Text('No employees found. Add one!'));
+            return const Center(child: Text('No employees found. Add one via the menu.'));
           }
 
           return ListView.builder(
@@ -88,7 +104,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               return EmployeeCard(
                 employee: employee,
                 onTap: () {
-                  controller.selectEmployee(employee); // Select before navigating
+                  controller.selectEmployee(employee);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -109,11 +125,14 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                       ),
                     );
                     if (confirm == true) {
-                      await controller.deleteEmployee(employee.id!);
+                      bool deleted = await controller.deleteEmployee(employee.id!);
+                       if (!deleted && mounted && controller.errorMessage != null) {
+                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(controller.errorMessage!)));
+                       }
                     }
                 },
                 onLongPress: () {
-                   controller.selectEmployee(employee); // Select before navigating
+                   controller.selectEmployee(employee);
                    Navigator.push(
                     context,
                     MaterialPageRoute(
