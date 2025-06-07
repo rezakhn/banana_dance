@@ -20,6 +20,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0 # Or a more recent version like ^3.0.0
+  mockito: ^5.4.4 # Or latest version
+  build_runner: ^2.4.8 # Or latest version
+  sqflite_common_ffi: ^2.3.0 # Or latest
 
 flutter:
   uses-material-design: true
