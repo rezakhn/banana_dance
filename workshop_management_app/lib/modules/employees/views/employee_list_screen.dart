@@ -9,7 +9,11 @@ import 'package:workshop_management_app/modules/parts/views/part_list_screen.dar
 import 'package:workshop_management_app/modules/orders/views/customer_list_screen.dart';
 import 'package:workshop_management_app/modules/orders/views/sales_order_list_screen.dart';
 // Inventory Module Views
-import 'package:workshop_management_app/modules/inventory/views/inventory_list_screen.dart'; // Added
+import 'package:workshop_management_app/modules/inventory/views/inventory_list_screen.dart';
+// Reports Module Views
+import 'package:workshop_management_app/modules/reports/views/report_dashboard_screen.dart';
+// Backup Module Views
+import 'package:workshop_management_app/modules/backup/views/backup_settings_screen.dart'; // Added
 // Employee Module
 import '../controllers/employee_controller.dart';
 import 'employee_edit_screen.dart';
@@ -41,48 +45,48 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             tooltip: 'Customers',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerListScreen()));
-            },
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerListScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_checkout_outlined),
             tooltip: 'Sales Orders',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesOrderListScreen()));
-            },
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesOrderListScreen())),
           ),
           const VerticalDivider(width: 1, indent: 10, endIndent: 10),
           IconButton(
             icon: const Icon(Icons.storefront_outlined),
             tooltip: 'Suppliers',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const SupplierListScreen()));
-            },
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupplierListScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),
             tooltip: 'Purchase Invoices',
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const PurchaseInvoiceListScreen()));
-            },
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PurchaseInvoiceListScreen())),
           ),
           const VerticalDivider(width: 1, indent: 10, endIndent: 10),
           IconButton(
             icon: const Icon(Icons.inventory_2_outlined),
-            tooltip: 'Inventory', // New Inventory Button
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const InventoryListScreen()));
-            },
+            tooltip: 'Inventory',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const InventoryListScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.assessment_outlined),
+            tooltip: 'Reports',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportDashboardScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.build_circle_outlined),
             tooltip: 'Parts & Assemblies',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartListScreen())),
+          ),
+          const VerticalDivider(width: 1, indent: 10, endIndent: 10),
+          IconButton( // New Backup Button
+            icon: const Icon(Icons.settings_backup_restore_outlined),
+            tooltip: 'Backup & Restore',
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const PartListScreen()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const BackupSettingsScreen()));
             },
           ),
-           const VerticalDivider(width: 1, indent: 10, endIndent: 10),
           PopupMenuButton<String>(
             icon: const Icon(Icons.person_outline),
             tooltip: "Employee Actions",
