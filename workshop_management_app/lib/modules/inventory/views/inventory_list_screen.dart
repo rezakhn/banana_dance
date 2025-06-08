@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workshop_management_app/shared/widgets/main_layout_scaffold.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/inventory_item.dart';
-import '../widgets/inventory_item_card.dart'; // Added import
+import '../widgets/inventory_item_card.dart';
 
 enum InventoryFilter { all, lowStock }
 
@@ -60,7 +61,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                 if (formKey.currentState!.validate()) {
                   final newThreshold = double.parse(thresholdController.text);
                   bool success = await controller.updateItemThreshold(item.itemName, newThreshold);
-                  Navigator.of(dialogContext).pop(); // Close dialog
+                  Navigator.of(dialogContext).pop();
                   if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Threshold for ${item.itemName} updated.')),
@@ -81,32 +82,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inventory Status'),
-        actions: [
-          PopupMenuButton<InventoryFilter>(
-            initialValue: _currentFilter,
-            onSelected: (InventoryFilter filter) {
-              setState(() {
-                _currentFilter = filter;
-              });
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<InventoryFilter>>[
-              const PopupMenuItem<InventoryFilter>(
-                value: InventoryFilter.all,
-                child: Text('Show All Items'),
-              ),
-              const PopupMenuItem<InventoryFilter>(
-                value: InventoryFilter.lowStock,
-                child: Text('Show Low Stock Only'),
-              ),
-            ],
-            icon: const Icon(Icons.filter_list),
-          ),
-        ],
-      ),
-      body: Column(
+    final Widget screenBody = Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -119,8 +95,6 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.toLowerCase();
-                  // Optionally, debounce the fetch/filter operation if it's expensive
-                  // For local filtering, direct setState is fine.
                 });
               },
             ),
@@ -170,7 +144,32 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
             ),
           ),
         ],
-      ),
+      );
+
+    return MainLayoutScaffold(
+      title: 'Inventory Status',
+      appBarActions: [
+        PopupMenuButton<InventoryFilter>(
+          initialValue: _currentFilter,
+          onSelected: (InventoryFilter filter) {
+            setState(() {
+              _currentFilter = filter;
+            });
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<InventoryFilter>>[
+            const PopupMenuItem<InventoryFilter>(
+              value: InventoryFilter.all,
+              child: Text('Show All Items'),
+            ),
+            const PopupMenuItem<InventoryFilter>(
+              value: InventoryFilter.lowStock,
+              child: Text('Show Low Stock Only'),
+            ),
+          ],
+          icon: const Icon(Icons.filter_list),
+        ),
+      ],
+      body: screenBody,
     );
   }
 }

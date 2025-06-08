@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:workshop_management_app/shared/widgets/main_layout_scaffold.dart';
 import '../controllers/report_controller.dart';
 import '../models/income_report_data.dart';
 import '../models/employee_performance_data.dart';
-import '../../employees/models/employee.dart'; // For employee dropdown
-import '../../employees/controllers/employee_controller.dart'; // To fetch employee list for dropdown
+import '../../employees/models/employee.dart';
+import '../../employees/controllers/employee_controller.dart';
 
 enum ReportType { none, income, employeePerformance }
 
@@ -18,16 +19,15 @@ class ReportDashboardScreen extends StatefulWidget {
 
 class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
   ReportType _selectedReportType = ReportType.none;
-
   Employee? _selectedEmployeeFilter;
-
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Ensure EmployeeController has loaded employees for the dropdown
       Provider.of<EmployeeController>(context, listen: false).fetchEmployees();
+      // ReportController's default date range is set in its constructor.
+      // Initial data generation will happen upon user interaction.
     });
   }
 
@@ -77,11 +77,10 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
   }
 
   Widget _buildEmployeeFilterDropdown(ReportController controller) {
-    // Using EmployeeController to provide the list of employees for the filter
     return Consumer<EmployeeController>(
       builder: (context, empCtrl, child) {
         if (empCtrl.isLoading && empCtrl.employees.isEmpty) return CircularProgressIndicator();
-        return DropdownButtonFormField<Employee?>( // Changed to DropdownButtonFormField for better form integration if needed
+        return DropdownButtonFormField<Employee?>(
           decoration: InputDecoration(labelText: "Filter by Employee (Optional)"),
           hint: const Text("All Employees"),
           value: _selectedEmployeeFilter,
@@ -102,14 +101,11 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
             setState(() {
               _selectedEmployeeFilter = newValue;
             });
-            // Optional: Directly update ReportController if it needs to know the filter immediately
-            // controller.setSelectedEmployeeForReport(newValue);
           },
         );
       }
     );
   }
-
 
   Widget _buildReportContent(ReportController controller) {
     if (controller.isLoading) {
@@ -126,6 +122,10 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
         return _buildIncomeReportView(data);
       case ReportType.employeePerformance:
         final data = controller.employeePerformanceList;
+        // Show message if report generated but list is empty (e.g. no worklogs for employee in period)
+        if (data.isEmpty && !controller.isLoading && controller.errorMessage == null && _selectedReportType == ReportType.employeePerformance) {
+          return const Center(child: Text("No performance data for the selected criteria."));
+        }
         if (data.isEmpty && !controller.isLoading) return const Center(child: Text("Press 'Generate Report' to see employee performance."));
         return _buildEmployeePerformanceReportView(data);
       default:
@@ -153,7 +153,7 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
   }
 
   Widget _buildEmployeePerformanceReportView(List<EmployeePerformanceData> data) {
-    return Expanded( // Added Expanded here
+    return Expanded(
       child: ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
@@ -193,14 +193,11 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final reportController = Provider.of<ReportController>(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Reports Dashboard")),
-      body: Column(
+    final Widget screenBody = Column(
         children: [
           _buildDateRangePicker(reportController),
           Padding(
@@ -239,7 +236,12 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
           const Divider(),
           Expanded(child: _buildReportContent(reportController)),
         ],
-      ),
+      );
+
+    return MainLayoutScaffold(
+      title: "Reports Dashboard",
+      body: screenBody,
+      // No specific appBarActions for this screen, handled in body.
     );
   }
 }

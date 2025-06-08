@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workshop_management_app/shared/widgets/main_layout_scaffold.dart';
 import '../controllers/part_controller.dart';
 import '../models/part.dart';
 import 'part_edit_screen.dart';
-import '../widgets/part_card.dart'; // Added import
+import '../widgets/part_card.dart';
 
 class PartListScreen extends StatefulWidget {
   const PartListScreen({Key? key}) : super(key: key);
@@ -23,22 +24,7 @@ class _PartListScreenState extends State<PartListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Parts & Assemblies'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PartEditScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Consumer<PartController>(
+    final Widget screenBody = Consumer<PartController>(
         builder: (context, controller, child) {
           if (controller.isLoading && controller.parts.isEmpty) {
             return const Center(child: CircularProgressIndicator());
@@ -60,24 +46,23 @@ class _PartListScreenState extends State<PartListScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => PartEditScreen(part: part)),
-                  );
+                  ).then((_) => Provider.of<PartController>(context, listen: false).fetchParts());
                 },
                 onDelete: () async {
-                  // TODO: Add confirmation dialog
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
                       title: const Text('Confirm Delete'),
-                      content: Text('Are you sure you want to delete "${part.name}"? This may fail if the part is in use (e.g., in assemblies, products, or has inventory).'),
+                      content: Text('Are you sure you want to delete "${part.name}"? This may fail if the part is in use (e.g., in other assemblies, products, or has inventory).'),
                       actions: [
                         TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
                         TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
                       ],
                     ),
                   );
-                  if (confirm == true) {
+                  if (confirm == true && mounted) {
                     await controller.deletePart(part.id!);
-                     if (controller.errorMessage != null && mounted) {
+                    if (controller.errorMessage != null && mounted) {
                          ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error: ${controller.errorMessage}')),
                           );
@@ -88,7 +73,26 @@ class _PartListScreenState extends State<PartListScreen> {
             },
           );
         },
-      ),
+      );
+
+    return MainLayoutScaffold(
+      title: 'Parts & Assemblies',
+      appBarActions: [
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline),
+          tooltip: 'Add Part/Assembly',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PartEditScreen()),
+            ).then((_) => Provider.of<PartController>(context, listen: false).fetchParts());
+          },
+        ),
+        // TODO: Consider adding buttons to navigate to ProductListScreen and AssemblyOrderListScreen from here
+        // or keep them accessible only via AppDrawer for less clutter.
+        // For now, keeping AppBar clean.
+      ],
+      body: screenBody,
     );
   }
 }

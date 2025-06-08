@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p; // For basename
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
+import 'package:workshop_management_app/shared/widgets/main_layout_scaffold.dart';
 import '../controllers/backup_controller.dart';
 import '../models/backup_info.dart';
 
@@ -18,8 +19,9 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch history when screen loads, if not already loaded by controller constructor
-    // Provider.of<BackupController>(context, listen: false).fetchBackupHistory();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<BackupController>(context, listen: false).fetchBackupHistory();
+    });
   }
 
   Future<void> _performRestore(BackupController controller, BackupInfo backupInfo) async {
@@ -42,7 +44,6 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
 
     if (confirm == true && mounted) {
       await controller.restoreFromBackup(backupInfo);
-      // Message is handled by controller, but we can show a dialog for app restart reminder
       if (mounted && controller.operationMessage != null && !controller.isError) {
         showDialog(
             context: context,
@@ -98,24 +99,11 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final backupController = Provider.of<BackupController>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Backup & Restore'),
-        actions: [
-          if (backupController.backupHistory.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.delete_sweep_outlined, color: Colors.red.shade300),
-              tooltip: 'Clear All Backup History & Files',
-              onPressed: backupController.isLoading ? null : () => _performClearAll(backupController),
-            )
-        ],
-      ),
-      body: RefreshIndicator(
+    final Widget screenBody = RefreshIndicator(
         onRefresh: () => backupController.fetchBackupHistory(),
         child: Column(
           children: [
@@ -140,14 +128,14 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
                     onPressed: backupController.isLoading
                         ? null
                         : () async {
-                            FocusScope.of(context).unfocus(); // Dismiss keyboard
+                            FocusScope.of(context).unfocus();
                             await backupController.createNewBackup(notes: _notesController.text.trim());
                             if (mounted && backupController.operationMessage != null && !backupController.isError) {
-                                _notesController.clear(); // Clear notes on success
+                                _notesController.clear();
                             }
                           },
                   ),
-                  if (backupController.isLoading && backupController.operationMessage == null) // Show loading only if no message yet
+                  if (backupController.isLoading && backupController.operationMessage == null)
                      const Padding(padding: EdgeInsets.all(8.0), child: Center(child: CircularProgressIndicator())),
                   if (backupController.operationMessage != null)
                     Padding(
@@ -222,7 +210,19 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
             ),
           ],
         ),
-      ),
+      );
+
+    return MainLayoutScaffold(
+      title: 'Backup & Restore',
+      appBarActions: [
+        if (backupController.backupHistory.isNotEmpty)
+          IconButton(
+            icon: Icon(Icons.delete_sweep_outlined, color: Colors.red.shade300),
+            tooltip: 'Clear All Backup History & Files',
+            onPressed: backupController.isLoading ? null : () => _performClearAll(backupController),
+          )
+      ],
+      body: screenBody,
     );
   }
 
