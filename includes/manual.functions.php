@@ -735,17 +735,19 @@ class manual extends template {
 		}
 		// Now prepare the link
 		if ($url_display_type == "Name") {
-	 		$cate_name = urlencode($this->get_category_name_from_id($category_id));
-			if (empty($category_id)) {
-				$cate_name = "Home";
-			}
+			$raw_cate_name = $this->get_category_name_from_id($category_id);
+			// If category_id is '0', get_category_name_from_id returns "Home".
+			// If category_id is truly empty (e.g. for a global article not in a category, if supported),
+			// get_category_name_from_id also returns "Home".
+			// So, we can generally rely on $raw_cate_name from get_category_name_from_id.
+			$clean_cate_name = $this->urlencodeclean($raw_cate_name);
+
 			if (empty($article_id)) {
-				// $link = URL . "/page/" . $cate_name . "/";
-				$link = URL . "/" . $this->urlencodeclean($cate_name) . "/";
+				$link = URL . "/" . $clean_cate_name . "/";
 			} else {
-				$article_name = urlencode($article_name);
-				// $link = URL . "/page/" . $cate_name . "/" . urlencode($article_name);
-				$link = URL . "/" . $this->urlencodeclean($cate_name) . "/" . $this->urlencodeclean($article_name);
+				// $article_name is passed in, assumed to be raw
+				$clean_article_name = $this->urlencodeclean($article_name);
+				$link = URL . "/" . $clean_cate_name . "/" . $clean_article_name;
 			}
 		} else {
 			$link = URL . "/index.php?category=" . $category_id . "&id=" . $article_id;
@@ -3995,7 +3997,7 @@ class manual extends template {
 		}
 		
 		// Reply
-		echo "1+++Saved!";
+		echo "1+++" . $insert_id;
 		exit;
 	}
 	

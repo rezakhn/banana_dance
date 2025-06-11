@@ -625,22 +625,21 @@ function processRegistration() {
 		send_data = $('form#register_form').serialize();
 	    	$.post(js_path_put, send_data, function(theResponse) {
 			var returned = theResponse.split('+++');
-			if (returned['0'] == "1") {
+			if (returned[0].trim() == "1") { // Success
 				send_data = "action=get_template&category=" + current_category_id + "&name=logged_in_sidebar&user=" + $('#reg_username').val();
-			    	$.post(js_path_put, send_data, function(inner) {
+				$.post(js_path_put, send_data, function(inner) { // Get logged_in_sidebar template
 					$('#bd_logged_session').fadeOut('300', function () {
-						$('#bd_logged_session').html(inner);
+						$('#bd_logged_session').html(inner); // Display new sidebar
 						$('#bd_logged_session').fadeIn('300');
 						// Reprocess article
 						getManageBar();
 						runArticleReProcess('0','1');
-						// window.location.reload();
+						showSaved("Account created!"); // Explicitly show success message
 					});
 			    	});
-				// window.location.reload();
-				closeError();
-				closeCaptcha();
-			} else {
+				closeError(); // Close any previous error
+				closeCaptcha(); // Close captcha if it was open
+			} else { // Error
 				process_error(theResponse,returned['2']);
 				if (returned['2']) {
 					// Highlight fields
